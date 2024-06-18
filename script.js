@@ -1,10 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
     const gridElement = document.getElementById('grid');
     const gridContainer = document.getElementById('grid-container');
+    const colorPicker = document.getElementById('color-picker');
     const gridSize = 100;
+    const pixelSize = 10;
     const pixelData = JSON.parse(localStorage.getItem('pixelData')) || {};
     const colorUsage = JSON.parse(localStorage.getItem('colorUsage')) || {};
-    
+
     let scale = 1;
     let isPanning = false;
     let startX, startY;
@@ -15,29 +17,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const pixel = document.createElement('div');
         pixel.className = 'pixel';
         pixel.dataset.index = i;
-        pixel.style.backgroundColor = pixelData[i] || 'white'; // Load saved color or default to white
+        pixel.style.backgroundColor = pixelData[i] || 'white';
         gridElement.appendChild(pixel);
 
         // Add event listener to change color on click
         pixel.addEventListener('click', function(event) {
             selectedPixel = pixel;
-            const colorPicker = document.getElementById('color-picker');
-            colorPicker.style.display = 'block';
-            colorPicker.style.left = `${event.clientX}px`;
-            colorPicker.style.top = `${event.clientY}px`;
+            showColorPicker(event.clientX, event.clientY);
             event.stopPropagation();
         });
     }
 
     // Hide color picker when clicking outside
     document.body.addEventListener('click', () => {
-        document.getElementById('color-picker').style.display = 'none';
+        colorPicker.classList.add('hidden');
     });
 
     // Create color picker
-    const colorPicker = document.getElementById('color-picker');
-    
-    function updateColorPicker() {
+    function showColorPicker(x, y) {
         colorPicker.innerHTML = '';
         const topColors = getTopColors();
         topColors.forEach(color => {
@@ -49,11 +46,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 pixelData[selectedPixel.dataset.index] = color;
                 localStorage.setItem('pixelData', JSON.stringify(pixelData));
                 updateColorUsage(color);
-                updateColorPicker();
-                colorPicker.style.display = 'none';
+                colorPicker.classList.add('hidden');
             });
             colorPicker.appendChild(colorOption);
         });
+
+        colorPicker.style.left = `${x}px`;
+        colorPicker.style.top = `${y}px`;
+        colorPicker.classList.remove('hidden');
     }
 
     function updateColorUsage(color) {
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     gridContainer.addEventListener('wheel', (e) => {
         e.preventDefault();
         scale += e.deltaY * -0.01;
-        scale = Math.min(Math.max(0.5, scale), 4); // Restrict scale between 0.5 and 4
+        scale = Math.min(Math.max(0.5, scale), 4);
         gridElement.style.transform = `scale(${scale})`;
     });
 
