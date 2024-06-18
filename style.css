@@ -5,6 +5,7 @@ body {
     height: 100vh;
     margin: 0;
     background-color: #f0f0f0;
+    flex-direction: column;
 }
 
 #grid-container {
@@ -31,24 +32,23 @@ body {
     box-sizing: border-box;
 }
 
-#color-picker {
-    position: absolute;
+#palette-container {
+    margin-top: 20px;
     display: flex;
     flex-wrap: wrap;
-    width: 100px;
-    background-color: white;
-    border: 1px solid #ccc;
-    padding: 5px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    justify-content: center;
+    max-width: 600px;
+}
+
+#color-palette {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(20px, 1fr));
+    grid-gap: 5px;
+    justify-content: center;
 }
 
 .color-option {
     width: 20px;
     height: 20px;
-    margin: 2px;
     cursor: pointer;
-}
-
-.hidden {
-    display: none;
 }
