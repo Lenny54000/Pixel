@@ -1,16 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
     const gridElement = document.getElementById('grid');
     const gridContainer = document.getElementById('grid-container');
-    const colorPicker = document.getElementById('color-picker');
+    const colorPalette = document.getElementById('color-palette');
     const gridSize = 100;
     const pixelSize = 10;
     const pixelData = JSON.parse(localStorage.getItem('pixelData')) || {};
-    const colorUsage = JSON.parse(localStorage.getItem('colorUsage')) || {};
 
-    let scale = 1;
-    let isPanning = false;
-    let startX, startY;
     let selectedPixel;
+    let selectedColor = 'black'; // Default color
+
+    // List of colors
+    const colors = [
+        '#FF5733', '#FFBD33', '#FFFF33', '#BDFF33', '#33FF57', '#33FFBD', '#33FFFF', '#33BDFF', '#3357FF', '#5733FF', '#BD33FF', '#FF33FF', 
+        '#FF33BD', '#FF3357', '#FFFFFF', '#C0C0C0', '#808080', '#404040', '#000000'
+    ];
 
     // Create the grid
     for (let i = 0; i < gridSize * gridSize; i++) {
@@ -21,57 +24,30 @@ document.addEventListener('DOMContentLoaded', () => {
         gridElement.appendChild(pixel);
 
         // Add event listener to change color on click
-        pixel.addEventListener('click', function(event) {
+        pixel.addEventListener('click', function() {
             selectedPixel = pixel;
-            showColorPicker(event.clientX, event.clientY);
-            event.stopPropagation();
+            selectedPixel.style.backgroundColor = selectedColor;
+            pixelData[selectedPixel.dataset.index] = selectedColor;
+            localStorage.setItem('pixelData', JSON.stringify(pixelData));
         });
     }
 
-    // Hide color picker when clicking outside
-    document.body.addEventListener('click', () => {
-        colorPicker.classList.add('hidden');
+    // Create the color palette
+    colors.forEach(color => {
+        const colorOption = document.createElement('div');
+        colorOption.className = 'color-option';
+        colorOption.style.backgroundColor = color;
+        colorOption.addEventListener('click', () => {
+            selectedColor = color;
+        });
+        colorPalette.appendChild(colorOption);
     });
 
-    // Create color picker
-    function showColorPicker(x, y) {
-        colorPicker.innerHTML = '';
-        const topColors = getTopColors();
-        topColors.forEach(color => {
-            const colorOption = document.createElement('div');
-            colorOption.className = 'color-option';
-            colorOption.style.backgroundColor = color;
-            colorOption.addEventListener('click', () => {
-                selectedPixel.style.backgroundColor = color;
-                pixelData[selectedPixel.dataset.index] = color;
-                localStorage.setItem('pixelData', JSON.stringify(pixelData));
-                updateColorUsage(color);
-                colorPicker.classList.add('hidden');
-            });
-            colorPicker.appendChild(colorOption);
-        });
-
-        colorPicker.style.left = `${x}px`;
-        colorPicker.style.top = `${y}px`;
-        colorPicker.classList.remove('hidden');
-    }
-
-    function updateColorUsage(color) {
-        if (colorUsage[color]) {
-            colorUsage[color]++;
-        } else {
-            colorUsage[color] = 1;
-        }
-        localStorage.setItem('colorUsage', JSON.stringify(colorUsage));
-    }
-
-    function getTopColors() {
-        const colorEntries = Object.entries(colorUsage);
-        colorEntries.sort((a, b) => b[1] - a[1]);
-        return colorEntries.slice(0, 10).map(entry => entry[0]);
-    }
-
     // Zooming
+    let scale = 1;
+    let isPanning = false;
+    let startX, startY;
+
     gridContainer.addEventListener('wheel', (e) => {
         e.preventDefault();
         scale += e.deltaY * -0.01;
@@ -120,6 +96,4 @@ document.addEventListener('DOMContentLoaded', () => {
             gridElement.style.top = `${e.touches[0].clientY - startY}px`;
         }
     });
-
-    updateColorPicker();
 });
